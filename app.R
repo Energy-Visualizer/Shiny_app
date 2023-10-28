@@ -24,9 +24,6 @@ agg_eta_pfu_df <- pins::pin_read(board = pinboard, name = "agg_eta_pfu", version
 psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230618T131003Z-4c70f")
 
 
-
-
-
 page1 <- tabPanel(
   title = "Page1",
   titlePanel("Page1"),
@@ -37,7 +34,7 @@ page1 <- tabPanel(
     sidebarPanel(
       selectInput("country", "Select a Country", 
                   choices = psut_df["Country"],
-                  selected = "Singapore"),
+                  selected = "WRLD"),
       selectInput("year", "Select a Year", 
                   choices = psut_df["Year"], selected = 2005)
     ),
@@ -65,31 +62,56 @@ page2 <- tabPanel(
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("Plot"),
-      htmlOutput("sankeyPlot", inline = FALSE)
+      htmlOutput("sankeyPlot", inline = FALSE),
+      tableOutput("ago1971")
     )
   )
 )
 
 ui <- navbarPage(
   title = "Energy Visualizer",
-  theme = shinytheme('united'),
+  theme = shinytheme('sandstone'),
   page1,
   page2
 )
 
 
 
-ago1971 <- psut_df[1, ]
-R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-U_ago_1971 <- ago1971$U[[1]] |> unlist() |> as.matrix()
-V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
-Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+
+  
+  data1 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    return(R_ago_1971)
+  })
+  
+  data2 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
+    U_ago_1971 <- ago1971$U[[1]] |> unlist() |> as.matrix()
+    return(U_ago_1971)
+  })
+  
+  data3 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
+
+    V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
+    return(V_ago_1971)
+  })
+  
+  data4 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
+    
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    
+    return(Y_ago_1971)
+  })
   
   output$map <- renderLeaflet({
-    leaflet() %>%
+    leaflet() %>% 
       addTiles() %>%
       setView(lng = 0, lat = 30, zoom = 2)  # Set initial view
   })
@@ -106,12 +128,11 @@ server <- function(input, output) {
   })
   
   
-  
-  output$sankeyPlot <- renderUI({Recca::make_sankey(R = R_ago_1971,
-                                                    U = U_ago_1971, 
-                                                    V = V_ago_1971, 
-                                                    Y = Y_ago_1971)})
-  
+
+  output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
+                                                    U = data2(), 
+                                                    V = data3(), 
+                                                    Y = data4())})
   
 }
 
