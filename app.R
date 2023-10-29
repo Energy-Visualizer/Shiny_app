@@ -18,15 +18,15 @@ library(networkD3)
 library(leaflet)
 
 
-pinboard_folder <- file.path("C:/Users/4951h/Desktop/Energy Visualizer/Energy/data")
+pinboard_folder <- file.path("C:/Users/Keren/Documents/Shiny_app/Data")
 pinboard <- pins::board_folder(pinboard_folder, versioned = TRUE)
 agg_eta_pfu_df <- pins::pin_read(board = pinboard, name = "agg_eta_pfu", version = "20230619T051304Z-f653c")
-psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230618T131003Z-4c70f")
+psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230915T185731Z-c48a0")
 
 
 page1 <- tabPanel(
-  title = "Page1",
-  titlePanel("Page1"),
+  title = "Map",
+  titlePanel("Map"),
   "Created with R Shiny",
   br(),
   "2023 October",
@@ -47,26 +47,17 @@ page1 <- tabPanel(
 
 
 page2 <- tabPanel(
-  title ="Page2",
-  titlePanel("Page2"),
-  # Sidebar with a slider input for number of bins
-  sidebarLayout(
-    sidebarPanel(
-      sliderInput("bins",
-                  "Number of bins:",
-                  min = 1,
-                  max = 50,
-                  value = 30)
-    ),
+  title ="Graphs",
+  titlePanel("Efficiency graphs"),
     
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("Plot"),
-      htmlOutput("sankeyPlot", inline = FALSE),
-      tableOutput("ago1971")
+      tags$h1("Sankey Diagram"),
+      htmlOutput("sankeyPlot", inline = FALSE)
     )
   )
-)
+
 
 ui <- navbarPage(
   title = "Energy Visualizer",
