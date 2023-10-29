@@ -25,11 +25,8 @@ psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230915T1
 
 
 page1 <- tabPanel(
-  title = "Map",
-  titlePanel("Map"),
-  "Created with R Shiny",
-  br(),
-  "2023 October",
+  title = "Global Map",
+  titlePanel("Interactive Map"),
   sidebarLayout(
     sidebarPanel(
       selectInput("country", "Select a Country", 
@@ -37,9 +34,11 @@ page1 <- tabPanel(
                   selected = "WRLD"),
       selectInput("year", "Select a Year", 
                   choices = psut_df["Year"], selected = 2005)
+    
     ),
     mainPanel(
-      leafletOutput("map")
+      leafletOutput("map"),
+      htmlOutput("sankeyPlot2", inline = FALSE)
     )
   )
 )
@@ -47,17 +46,16 @@ page1 <- tabPanel(
 
 
 page2 <- tabPanel(
-  title ="Graphs",
-  titlePanel("Efficiency graphs"),
-    
+  title ="In-depth View",
+  tags$h1("Efficiency Graph"),
+  # Sidebar with a slider input for number of bins
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("Plot"),
       tags$h1("Sankey Diagram"),
       htmlOutput("sankeyPlot", inline = FALSE)
-    )
   )
-
+)
 
 ui <- navbarPage(
   title = "Energy Visualizer",
@@ -124,7 +122,10 @@ server <- function(input, output) {
                                                     U = data2(), 
                                                     V = data3(), 
                                                     Y = data4())})
-  
+  output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data1(),
+                                                    U = data2(), 
+                                                    V = data3(), 
+                                                    Y = data4())})
 }
 
 # Run the application 
