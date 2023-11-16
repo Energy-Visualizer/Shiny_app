@@ -16,7 +16,7 @@ library(leaflet)
 library(shinythemes)
 library(networkD3)
 library(leaflet)
-
+library(reshape2)
 
 pinboard_folder <- file.path("C:/Users/Keren/Documents/Shiny_app/Data")
 pinboard <- pins::board_folder(pinboard_folder, versioned = TRUE)
@@ -35,7 +35,7 @@ page1 <- tabPanel(
                   selected = psut_df["Country"]),
       selectInput("year", "Select a Year", 
                   choices = psut_df["Year"], selected = psut_df["Year"])
-    
+      
     ),
     mainPanel(
       leafletOutput("map"),
@@ -50,31 +50,39 @@ page2 <- tabPanel(
   title ="In-depth View",
   tags$h1("Efficiency Graph"),
   # Sidebar with a slider input for number of bins
-    # Show a plot of the generated distribution
+  # Show a plot of the generated distribution
   sidebarLayout(
     sidebarPanel(
       fluidRow(
-        column(3, h4("Energy Type"), radioButtons("energy_type", "", choices = c("E", "X"))),
-        column(3, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-        column(3, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-        column(3, h4("IEAMW"), radioButtons("ieamw", "", choices = c("IEA", "MW", "Both"))),
-        column(3, h4("Gross/Net"), radioButtons("gross_net", "", choices = c("Gross", "Net")))
-    )
+        column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
+        column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
+      )
     ),
     mainPanel(
       plotOutput("Plot"),
       tags$h1("Sankey Diagram"), 
       htmlOutput("sankeyPlot", inline = FALSE),
-      textOutput("gggg")
+    )
   )
 )
+
+page3 <- tabPanel(
+  title ="Slices",
+  tags$h1("Sankey"),
+  sidebarLayout(
+    sidebarPanel(),
+    mainPanel(
+      htmlOutput("sankeyPlot3", inline = FALSE)
+    )
+  )
 )
 
 ui <- navbarPage(
   title = "Energy Visualizer",
   theme = shinytheme('sandstone'),
   page1,
-  page2
+  page2,
+  page3
 )
 
 
@@ -83,7 +91,7 @@ ui <- navbarPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+  
   
   data1 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
@@ -99,7 +107,7 @@ server <- function(input, output) {
   
   data3 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
-
+    
     V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
@@ -144,12 +152,21 @@ server <- function(input, output) {
   })
   
   eff7 <- reactive({
-    agg_eta_pfu_df1 <- agg_eta_pfu_df |> 
-      dplyr::filter(Country == input$country, IEAMW == input$ieamw, Energy.type == input$energy_type, 
-                    Product.aggregation == input$product_aggregation, 
-                    Industry.aggregation == input$industry_aggregation, 
-                    GrossNet == input$gross_net)
-    return(agg_eta_pfu_df1)
+    agg_eta_pfu_df2 <- melt(agg_eta_pfu_df, id = c("Country", "Method", "Energy.type", "Year", "IEAMW", "Chopped.mat", "Chopped.var", "Product.aggregation", "Industry.aggregation", "GrossNet","EX.p", "EX.f", "EX.u")
+    )
+    
+    agg_eta_pu_all_continents <- agg_eta_pfu_df2 |>
+      dplyr::filter(Country == input$country,
+                    Method == "PCM",
+                    Year >= 1971,
+                    IEAMW == "Both",
+                    Chopped.mat == "None",
+                    Chopped.var == "None",
+                    Product.aggregation == input$product_aggregation,
+                    Industry.aggregation == input$industry_aggregation,
+                    GrossNet == "Gross"
+      )
+    return(agg_eta_pu_all_continents)
   })
   
   output$map <- renderLeaflet({
@@ -159,29 +176,46 @@ server <- function(input, output) {
   })
   
   output$Plot <- renderPlot({
-    
-    # agg_eta_pfu_df |> 
-    #   dplyr::filter(Country == eff6(), IEAMW == eff4(), Energy.type == eff1(), 
-    #                 Product.aggregation == eff2(), 
-    #                 Industry.aggregation == eff3(), 
-    #                 GrossNet == eff5()) 
-    eff7() |> ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = eta_pu)) + ggplot2::geom_line()
-  })
+    eff7() |>
+      ggplot2::ggplot(mapping = ggplot2::aes(x = Year,
+                                             y = value),
+                      colour = Country,
+                      linetype = Country,
+                      linewidth = Country) +
+      ggplot2::geom_line() +
+      ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+      ggplot2::scale_y_continuous(limits = c(0, 1),
+                                  breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1),
+                                  labels = scales::label_percent(suffix = "")) +
+      ggplot2::labs(x = NULL,
+                    y = expression("Energy and exergy efficiency ("*eta*") [%]"),
+                    colour = NULL,
+                    linetype = NULL,
+                    linewidth = NULL) +
+      ggplot2::facet_grid(rows = ggplot2::vars(variable),
+                          cols = ggplot2::vars(Energy.type),
+                          labeller = ggplot2::label_parsed) +
+      ggplot2::guides(
+        colour = ggplot2::guide_legend(
+          override.aes = list(linewidth = 1)  # Adjust the size of the line segments in the legend only
+        )
+      )
+  }) 
   
-  output$gggg <- renderText({
-    c(eff6(),eff1(),eff2(),eff3(),eff4(),eff5())
-  })
-
+  
   output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
                                                     U = data2(), 
                                                     V = data3(), 
                                                     Y = data4())})
   output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data1(),
-                                                    U = data2(), 
-                                                    V = data3(), 
-                                                    Y = data4())})
+                                                     U = data2(), 
+                                                     V = data3(), 
+                                                     Y = data4())})
+  output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data1(),
+                                                     U = data2(), 
+                                                     V = data3(), 
+                                                     Y = data4())})
 }
 
 # Run the application 
 shinyApp( ui,  server)
-
