@@ -18,10 +18,12 @@ library(networkD3)
 library(leaflet)
 library(reshape2)
 
+
 pinboard_folder <- file.path("C:/Users/Keren/Documents/Shiny_app/Data")
 pinboard <- pins::board_folder(pinboard_folder, versioned = TRUE)
 agg_eta_pfu_df <- pins::pin_read(board = pinboard, name = "agg_eta_pfu", version = "20230619T051304Z-f653c")
 psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230915T185731Z-c48a0")
+
 
 
 
@@ -30,12 +32,11 @@ page1 <- tabPanel(
   titlePanel("Interactive Map"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("country", "Select a Country", 
+      selectizeInput("country", "Select a Country", 
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
-      selectInput("year", "Select a Year", 
+      selectizeInput("year", "Select a Year", 
                   choices = psut_df["Year"], selected = psut_df["Year"])
-      
     ),
     mainPanel(
       leafletOutput("map"),
@@ -56,7 +57,9 @@ page2 <- tabPanel(
       fluidRow(
         column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
         column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-      )
+      ),
+      uiOutput("country"),
+      uiOutput("year")
     ),
     mainPanel(
       plotOutput("Plot"),
@@ -70,7 +73,13 @@ page3 <- tabPanel(
   title ="Slices",
   tags$h1("Sankey"),
   sidebarLayout(
-    sidebarPanel(),
+    sidebarPanel(
+      selectizeInput("country2", "Select a Country", 
+                  choices = psut_df["Country"],
+                  selected = psut_df["Country"]),
+      selectizeInput("year2", "Select a Year", 
+                  choices = psut_df["Year"], selected = psut_df["Year"])
+      ),
     mainPanel(
       htmlOutput("sankeyPlot3", inline = FALSE)
     )
@@ -92,7 +101,8 @@ ui <- navbarPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-  
+
+#matrices for regular sankeys
   data1 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
@@ -107,50 +117,47 @@ server <- function(input, output) {
   
   data3 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
-    
     V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
   
   data4 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
-    
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-    
+    return(Y_ago_1971)
+  })
+  
+  #matrices for slices
+  #New sankey made
+  
+  
+  data5 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    return(R_ago_1971)
+  })
+  
+  data6 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    U_ago_1971 <- ago1971$U[[1]] |> unlist() |> as.matrix()
+    return(U_ago_1971)
+  })
+  
+  data7 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
+    return(V_ago_1971)
+  })
+  
+  data8 <- reactive({ 
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
     return(Y_ago_1971)
   })
   
   
-  eff1 <- reactive({
-    effi1 <- input$energy_type
-    return(effi1)
-  })
-  
-  eff2 <- reactive({
-    effi2 <- input$product_aggregation
-    return(effi2)
-  })
-  
-  eff3 <- reactive({
-    effi3 <- input$industry_aggregation
-    return(effi3)
-  })
-  
-  eff4 <- reactive({
-    effi4 <- input$ieamw
-    return(effi4)
-  })
-  
-  eff5 <- reactive({
-    effi5 <- input$gross_net
-    return(effi5)
-  })
-  
-  eff6 <- reactive({
-    effi6 <- input$country
-    return(effi6)
-  })
-  
+
+#Faceted efficiency graphs  
   eff7 <- reactive({
     agg_eta_pfu_df2 <- melt(agg_eta_pfu_df, id = c("Country", "Method", "Energy.type", "Year", "IEAMW", "Chopped.mat", "Chopped.var", "Product.aggregation", "Industry.aggregation", "GrossNet","EX.p", "EX.f", "EX.u")
     )
@@ -169,12 +176,15 @@ server <- function(input, output) {
     return(agg_eta_pu_all_continents)
   })
   
+  
+  #Interactive map view
   output$map <- renderLeaflet({
     leaflet() %>% 
       addTiles() %>%
       setView(lng = 0, lat = 30, zoom = 2)  # Set initial view
   })
   
+  #Efficiency graph representation
   output$Plot <- renderPlot({
     eff7() |>
       ggplot2::ggplot(mapping = ggplot2::aes(x = Year,
@@ -202,7 +212,7 @@ server <- function(input, output) {
       )
   }) 
   
-  
+  #Sankey portrayal
   output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
                                                     U = data2(), 
                                                     V = data3(), 
@@ -211,11 +221,11 @@ server <- function(input, output) {
                                                      U = data2(), 
                                                      V = data3(), 
                                                      Y = data4())})
-  output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data1(),
-                                                     U = data2(), 
-                                                     V = data3(), 
-                                                     Y = data4())})
+  output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
+                                                     U = data6(), 
+                                                     V = data7(), 
+                                                     Y = data8())})
 }
 
-# Run the application 
+# Run the application
 shinyApp( ui,  server)
