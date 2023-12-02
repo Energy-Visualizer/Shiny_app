@@ -5,7 +5,6 @@
  Our Shiny app will carry out this visualization featuring a map of the world, where each individual country clicked on produces a Sankey diagram featuring data for the most recent year on record, as well as an efficiency graph showing how much useful energy has been produced over the years. Users will also be able to view "chops" of data showing particular resources producing energy, and sectors where the energy has been used
 
 ## Our Team
-The project is expected to be completed by [date]. The following is a tentative schedule:
 - Adam Zentner
 - Oghenesuvwe Ogedegbe
 - Haim Hong
