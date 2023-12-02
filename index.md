@@ -8,13 +8,13 @@
                 - Oghenesuvwe Ogedegbe
                 - Haim Hong
 
-            ##Advisor
+            ## Advisor
             Professor Matthew Heun
 
-            ##Code
+            ## Code
             [Github](https://github.com/Energy-Visualizer")
 
-            ##Project Resources
+            ## Project Resources
                 The following resources will be needed to complete the project:
                 - [Department of Computer Science](https://computing.calvin.edu")
                 - [Project Proposal](https://calvincollege-my.sharepoint.com/:w:/r/personal/oko2_calvin_edu/_layouts/15/Doc.aspx?sourcedoc=%7B9064C99F-495B-4A7E-9517-F865CAD56DA2%7D&file=Project%20Proposal%20Edit.docx&action=default&mobileredirect=true)
