@@ -1,5 +1,8 @@
-### Energy Visualizer
+# Energy Visualizer
 ## Project Vision
+ Professor Heun has a collection of data from each country outlining the past 60 years of energy production and consumption. These contain datasets that store the calculations of energy efficiency across various modes of energy production and consumption for each of these countries. The goal of this data is to show off the energy profile of each country so that efficiency practices and sustainable energy production can be improved.
+
+ Our Shiny app will carry out this visualization featuring a map of the world, where each individual country clicked on produces a Sankey diagram featuring data for the most recent year on record, as well as an efficiency graph showing how much useful energy has been produced over the years. Users will also be able to view "chops" of data showing particular resources producing energy, and sectors where the energy has been used
 
 ## Our Team
 The project is expected to be completed by [date]. The following is a tentative schedule:
@@ -9,9 +12,6 @@ The project is expected to be completed by [date]. The following is a tentative 
 
 ## Advisor
 Professor Matthew Heun
-
-## Code
-[Github](https://github.com/Energy-Visualizer)
 
 ## Project Resources
 The following resources will be needed to complete the project:
