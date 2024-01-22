@@ -32,10 +32,10 @@ page1 <- tabPanel(
   titlePanel("Interactive Map"),
   sidebarLayout(
     sidebarPanel(
-      selectizeInput("country", "Select a Country", 
+      selectInput("country", "Select a Country", 
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
-      selectizeInput("year", "Select a Year", 
+      selectInput("year", "Select a Year", 
                   choices = psut_df["Year"], selected = psut_df["Year"])
     ),
     mainPanel(
@@ -57,9 +57,7 @@ page2 <- tabPanel(
       fluidRow(
         column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
         column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-      ),
-      uiOutput("country"),
-      uiOutput("year")
+      )
     ),
     mainPanel(
       plotOutput("Plot"),
@@ -74,14 +72,22 @@ page3 <- tabPanel(
   tags$h1("Sankey"),
   sidebarLayout(
     sidebarPanel(
-      selectizeInput("country2", "Select a Country", 
+      selectInput("country2", "Select a Country", 
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
-      selectizeInput("year2", "Select a Year", 
-                  choices = psut_df["Year"], selected = psut_df["Year"])
+      selectInput("year2", "Select a Year", 
+                  choices = psut_df["Year"], selected = psut_df["Year"]),
+      radioButtons("radio", "Select Category:",
+                   choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
+                   selected = "Final demand sector"),
+        selectizeInput("options", 
+                         label = "Select Options:",
+                         choices = c("Coal", "Residence", "Construction", "Gasoline", "Trash", "Processing"),
+                         multiple = TRUE)
       ),
     mainPanel(
-      htmlOutput("sankeyPlot3", inline = FALSE)
+      htmlOutput("sankeyPlot3", inline = FALSE),
+      textOutput("options")
     )
   )
 )
@@ -99,7 +105,7 @@ ui <- navbarPage(
 
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   
 
 #matrices for regular sankeys
@@ -176,6 +182,21 @@ server <- function(input, output) {
     return(agg_eta_pu_all_continents)
   })
   
+  observe({
+    updateSelectInput(session, "options",
+                      choices = getOptions(input$radio))
+  })
+  
+  getOptions <- function(category) {
+    # Define logic to get options based on the selected category
+    if (category == "Final demand sector") {
+      return(c("Residence", "Construction"))
+    } else if (category == "Resource sector") {
+      return(c("Coal", "Gasoline"))
+    } else {
+      return(c("Trash", "Processing"))
+    }
+  }
   
   #Interactive map view
   output$map <- renderLeaflet({
@@ -225,6 +246,10 @@ server <- function(input, output) {
                                                      U = data6(), 
                                                      V = data7(), 
                                                      Y = data8())})
+  output$selectedItemText <- renderText({
+    paste("Selected Item:", paste(input$options, collapse = ", "))
+  })
+  
 }
 
 # Run the application
