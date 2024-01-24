@@ -66,6 +66,10 @@ page2 <- tabPanel(
     )
   )
 )
+ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
+R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
+Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
 
 page3 <- tabPanel(
   title ="Slices",
@@ -80,14 +84,14 @@ page3 <- tabPanel(
       radioButtons("radio", "Select Category:",
                    choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                    selected = "Final demand sector"),
-        selectizeInput("options", 
-                         label = "Select Options:",
-                         choices = c("Coal", "Residence", "Construction", "Gasoline", "Trash", "Processing"),
-                         multiple = TRUE)
-      ),
+      selectizeInput("options", 
+                     label = "Select Options:",
+                     choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
+                     multiple = TRUE)
+    ),
     mainPanel(
       htmlOutput("sankeyPlot3", inline = FALSE),
-      textOutput("options")
+      verbatimTextOutput("eff8_output")
     )
   )
 )
@@ -107,8 +111,8 @@ ui <- navbarPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
-
-#matrices for regular sankeys
+  
+  #matrices for regular sankeys
   data1 <- reactive({ 
     ago1971 <- psut_df |> dplyr::filter(Country == input$country, Year == input$year)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
@@ -162,8 +166,8 @@ server <- function(input, output, session) {
   })
   
   
-
-#Faceted efficiency graphs  
+  
+  #Faceted efficiency graphs  
   eff7 <- reactive({
     agg_eta_pfu_df2 <- melt(agg_eta_pfu_df, id = c("Country", "Method", "Energy.type", "Year", "IEAMW", "Chopped.mat", "Chopped.var", "Product.aggregation", "Industry.aggregation", "GrossNet","EX.p", "EX.f", "EX.u")
     )
@@ -182,6 +186,12 @@ server <- function(input, output, session) {
     return(agg_eta_pu_all_continents)
   })
   
+  eff8 <- reactive({
+  ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+  R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+  ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+  Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+  
   observe({
     updateSelectInput(session, "options",
                       choices = getOptions(input$radio))
@@ -190,13 +200,16 @@ server <- function(input, output, session) {
   getOptions <- function(category) {
     # Define logic to get options based on the selected category
     if (category == "Final demand sector") {
-      return(c("Residence", "Construction"))
+      return(unique(colnames(Y_ago_1971)))
     } else if (category == "Resource sector") {
-      return(c("Coal", "Gasoline"))
+      return(unique(rownames(R_ago_1971)))
+    } else if (category == "Final demand energy carriers") {
+        return(unique(rownames(Y_ago_1971)))
     } else {
-      return(c("Trash", "Processing"))
+      return(unique(colnames(R_ago_1971)))
     }
   }
+  })
   
   #Interactive map view
   output$map <- renderLeaflet({
@@ -246,8 +259,8 @@ server <- function(input, output, session) {
                                                      U = data6(), 
                                                      V = data7(), 
                                                      Y = data8())})
-  output$selectedItemText <- renderText({
-    paste("Selected Item:", paste(input$options, collapse = ", "))
+  output$eff8_output <- renderPrint({
+    eff8()
   })
   
 }
