@@ -271,6 +271,11 @@ server <- function(input, output, session) {
     cat("selected options:", input$options, "\n")
   })
   
+  # createdOutput <- function(row, category, selecteditems){
+  #   
+  # }
+  
+  
 }
 
 # Run the application
