@@ -84,6 +84,16 @@ page3 <- tabPanel(
       radioButtons("radio", "Select Category:",
                    choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                    selected = "Final demand sector"),
+      radioButtons("last.stage", "Select Last Stage:",
+                   choices = c("Final", "Useful", "Primary"),
+                   selected = "Final"),
+      radioButtons("energy.type", "Select Energy Type:",
+                   choices = c("E", "X"),
+                   selected = "E"),
+      radioButtons("ieamw", "Select IEAMW:",
+                   choices = c("IEA", "MW", "Both"),
+                   selected = "IEA"),
+      actionButton("submitBtn", "Submit"),
       selectizeInput("options", 
                      label = "Select Options:",
                      choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
@@ -186,30 +196,28 @@ server <- function(input, output, session) {
     return(agg_eta_pu_all_continents)
   })
   
-  eff8 <- reactive({
-  ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
-  R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-  ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
-  Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-  
-  observe({
-    updateSelectInput(session, "options",
-                      choices = getOptions(input$radio))
-  })
-  
   getOptions <- function(category) {
-    # Define logic to get options based on the selected category
     if (category == "Final demand sector") {
       return(unique(colnames(Y_ago_1971)))
     } else if (category == "Resource sector") {
       return(unique(rownames(R_ago_1971)))
     } else if (category == "Final demand energy carriers") {
-        return(unique(rownames(Y_ago_1971)))
+      return(unique(rownames(Y_ago_1971)))
     } else {
       return(unique(colnames(R_ago_1971)))
     }
   }
+  observeEvent(input$submitBtn, {
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, Energy.type == input$energy.type, Last.stage == input$last.stage, IEAMW == input$ieamw)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    
+    updateSelectInput(session, "options", choices = getOptions(input$radio))
+    
+    
+    
   })
+  
   
   #Interactive map view
   output$map <- renderLeaflet({
@@ -260,7 +268,7 @@ server <- function(input, output, session) {
                                                      V = data7(), 
                                                      Y = data8())})
   output$eff8_output <- renderPrint({
-    eff8()
+    cat("selected options:", input$options, "\n")
   })
   
 }
