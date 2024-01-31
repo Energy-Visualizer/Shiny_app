@@ -81,7 +81,7 @@ page3 <- tabPanel(
                   selected = psut_df["Country"]),
       selectInput("year2", "Select a Year", 
                   choices = psut_df["Year"], selected = psut_df["Year"]),
-      radioButtons("radio", "Select Category:",
+      radioButtons("category", "Select Category:",
                    choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                    selected = "Final demand sector"),
       radioButtons("last.stage", "Select Last Stage:",
@@ -100,7 +100,6 @@ page3 <- tabPanel(
     ),
     mainPanel(
       htmlOutput("sankeyPlot3", inline = FALSE),
-      actionButton("submitBtn", "Submit"),
       verbatimTextOutput("eff8_output")
     )
   )
@@ -197,30 +196,33 @@ server <- function(input, output, session) {
   })
   
   eff8 <- reactive({
-    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
     
     observe({
       updateSelectInput(session, "options",
-                        choices = getOptions(input$radio))
+                        choices = getOptions(input$category))
     })
-  
-  getOptions <- function(category) {
-    if (category == "Final demand sector") {
-      return(unique(colnames(Y_ago_1971)))
-    } else if (category == "Resource sector") {
-      return(unique(rownames(R_ago_1971)))
-    } else if (category == "Final demand energy carriers") {
-      return(unique(rownames(Y_ago_1971)))
-    } else {
-      return(unique(colnames(R_ago_1971)))
+    
+    getOptions <- function(category) {
+      if (category == "Final demand sector") {
+        return(unique(colnames(Y_ago_1971)))
+      } else if (category == "Resource sector") {
+        return(unique(rownames(R_ago_1971)))
+      } else if (category == "Final demand energy carriers") {
+        return(unique(rownames(Y_ago_1971)))
+      } else {
+        return(unique(colnames(R_ago_1971)))
+      }
     }
-  }
     
   })
   
+eff10 <- reactive({
+  ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
+  return(ago1971)
+})
   
   #Interactive map view
   output$map <- renderLeaflet({
@@ -274,9 +276,52 @@ server <- function(input, output, session) {
     eff8()
   })
   
-  # createdOutput <- function(row, category, selecteditems){
-  #   
-  # }
+  do_chop <- function(rowdf, category, selectedOptions){
+    #Professor paste logic here
+    
+    return(rowdf)
+  }
+  
+ 
+  
+  magic_function <- reactive({
+    rowdf <- eff10()
+    category <- input$category
+    selectedOptions <- input$options
+    
+    result <- do_chop(rowdf, category, selectedOptions)
+    return(result)
+  })
+  
+  data5 <- reactive({ 
+    new_row <- magic_function()
+    R_ago_1971 <- new_row$R[[1]] |> unlist() |> as.matrix()
+    return(R_ago_1971)
+  })
+  
+  data6  <- reactive({ 
+    new_row <- magic_function()
+    U_ago_1971 <- new_row$U[[1]] |> unlist() |> as.matrix()
+    return(U_ago_1971)
+  })
+  
+  data7  <- reactive({ 
+    new_row <- magic_function()
+    V_ago_1971 <- new_row$V[[1]] |> unlist() |> as.matrix()
+    return(V_ago_1971)
+  })
+  
+  data8  <- reactive({ 
+    new_row <- magic_function()
+    Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
+    return(Y_ago_1971)
+  })
+  
+  output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
+                                                     U = data6(), 
+                                                     V = data7(), 
+                                                     Y = data8())})
+    
   
   
 }
