@@ -85,7 +85,7 @@ page3 <- tabPanel(
                    choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                    selected = "Final demand sector"),
       radioButtons("last.stage", "Select Last Stage:",
-                   choices = c("Final", "Useful", "Primary"),
+                   choices = c("Final", "Useful"),
                    selected = "Final"),
       radioButtons("energy.type", "Select Energy Type:",
                    choices = c("E", "X"),
@@ -93,7 +93,6 @@ page3 <- tabPanel(
       radioButtons("ieamw", "Select IEAMW:",
                    choices = c("IEA", "MW", "Both"),
                    selected = "IEA"),
-      actionButton("submitBtn", "Submit"),
       selectizeInput("options", 
                      label = "Select Options:",
                      choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
@@ -101,6 +100,7 @@ page3 <- tabPanel(
     ),
     mainPanel(
       htmlOutput("sankeyPlot3", inline = FALSE),
+      actionButton("submitBtn", "Submit"),
       verbatimTextOutput("eff8_output")
     )
   )
@@ -196,6 +196,17 @@ server <- function(input, output, session) {
     return(agg_eta_pu_all_continents)
   })
   
+  eff8 <- reactive({
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    
+    observe({
+      updateSelectInput(session, "options",
+                        choices = getOptions(input$radio))
+    })
+  
   getOptions <- function(category) {
     if (category == "Final demand sector") {
       return(unique(colnames(Y_ago_1971)))
@@ -207,14 +218,6 @@ server <- function(input, output, session) {
       return(unique(colnames(R_ago_1971)))
     }
   }
-  observeEvent(input$submitBtn, {
-    ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, Energy.type == input$energy.type, Last.stage == input$last.stage, IEAMW == input$ieamw)
-    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-    
-    updateSelectInput(session, "options", choices = getOptions(input$radio))
-    
-    
     
   })
   
@@ -268,7 +271,7 @@ server <- function(input, output, session) {
                                                      V = data7(), 
                                                      Y = data8())})
   output$eff8_output <- renderPrint({
-    cat("selected options:", input$options, "\n")
+    eff8()
   })
   
   # createdOutput <- function(row, category, selecteditems){
