@@ -15,37 +15,31 @@ library(pins)
 library(leaflet)
 library(shinythemes)
 library(networkD3)
-library(leaflet)
+suppressWarnings(library(rworldmap))
 library(reshape2)
+library(ggplot2)
 
 
-# pinboard_folder <- file.path("C:/Users/Keren/Documents/Shiny_app/Data")
-# pinboard <- pins::board_folder(pinboard_folder, versioned = TRUE)
-# agg_eta_pfu_df <- pins::pin_read(board = pinboard, name = "agg_eta_pfu", version = "20230619T051304Z-f653c")
-# psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230915T185731Z-c48a0")
-
-# MKH information
-pinboard_folder <- file.path("~/Dropbox/Fellowship 1960-2015 PFU database/OutputData/PipelineReleases/")
+pinboard_folder <- file.path("C:/Users/Keren/Documents/Shiny_app/Data")
 pinboard <- pins::board_folder(pinboard_folder, versioned = TRUE)
 agg_eta_pfu_df <- pins::pin_read(board = pinboard, name = "agg_eta_pfu", version = "20230619T051304Z-f653c")
 psut_df <- pins::pin_read(board = pinboard, name = "psut", version = "20230915T185731Z-c48a0")
 
-
-
+worldMap <- suppressWarnings(getMap())
 
 page1 <- tabPanel(
   title = "Global Map",
   titlePanel("Interactive Map"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("countrya", "Select a Country", 
+      selectInput("countrya", "Select a Country",
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
-      selectInput("yeara", "Select a Year", 
+      selectInput("yeara", "Select a Year",
                   choices = psut_df["Year"], selected = psut_df["Year"])
     ),
     mainPanel(
-      leafletOutput("map"),
+      plotOutput("mapPlot"),
       htmlOutput("sankeyPlot2", inline = FALSE)
     )
   )
@@ -60,23 +54,23 @@ page2 <- tabPanel(
   # Show a plot of the generated distribution
   mainPanel(
     fluidPage(
-      selectInput("countryb", "Select a Country", 
+      selectInput("countryb", "Select a Country",
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
       wellPanel(
         fluidRow(
       column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-      
+
       column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
       column(width = 12, plotOutput("Plot"))
       )
       ),
       fluidRow(
-        selectInput("yearb", "Select a Year", 
+        selectInput("yearb", "Select a Year",
                     choices = psut_df["Year"], selected = psut_df["Year"]),
-        HTML("<h1>Sankey Diagram</h1>"), 
+        HTML("<h1>Sankey Diagram</h1>"),
         htmlOutput("sankeyPlot", inline = FALSE)
-    ) 
+    )
     )
   )
 )
@@ -91,10 +85,10 @@ page3 <- tabPanel(
   tags$h1("Sankey"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("country2", "Select a Country", 
+      selectInput("country2", "Select a Country",
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
-      selectInput("year2", "Select a Year", 
+      selectInput("year2", "Select a Year",
                   choices = psut_df["Year"], selected = psut_df["Year"]),
       radioButtons("category", "Select Category:",
                    choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
@@ -108,7 +102,7 @@ page3 <- tabPanel(
       radioButtons("ieamw", "Select IEAMW:",
                    choices = c("IEA", "MW", "Both"),
                    selected = "IEA"),
-      selectizeInput("options", 
+      selectizeInput("options",
                      label = "Select Options:",
                      choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
                      multiple = TRUE)
@@ -134,96 +128,96 @@ ui <- navbarPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  
+
   selected_country <- reactiveVal(NULL)
   selected_year <- reactiveVal(NULL)
-  
+
   observeEvent(input$countrya, {
     selected_country(input$countrya)
   })
-  
+
   observeEvent(input$countryb, {
     selected_country(input$countryb)
   })
-  
+
   observe({
     updateSelectInput(session, "countrya", selected = selected_country())
     updateSelectInput(session, "countryb", selected = selected_country())
   })
-  
+
   observeEvent(input$yeara, {
     selected_year(input$yeara)
   })
-  
+
   observeEvent(input$yearb, {
     selected_year(input$yearb)
   })
-  
+
   observe({
     updateSelectInput(session, "yeara", selected = selected_year())
     updateSelectInput(session, "yearb", selected = selected_year())
   })
-  
+
   #matrices for regular sankeys
-  data1 <- reactive({ 
+  data1 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == selected_country(), Year == selected_year())
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
     return(R_ago_1971)
   })
-  
-  data2 <- reactive({ 
+
+  data2 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == selected_country(), Year == selected_year())
     U_ago_1971 <- ago1971$U[[1]] |> unlist() |> as.matrix()
     return(U_ago_1971)
   })
-  
-  data3 <- reactive({ 
+
+  data3 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == selected_country(), Year == selected_year())
     V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
-  
-  data4 <- reactive({ 
+
+  data4 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == selected_country(), Year == selected_year())
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
     return(Y_ago_1971)
   })
-  
+
   #matrices for slices
   #New sankey made
-  
-  
-  data5 <- reactive({ 
+
+
+  data5 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
     return(R_ago_1971)
   })
-  
-  data6 <- reactive({ 
+
+  data6 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
     U_ago_1971 <- ago1971$U[[1]] |> unlist() |> as.matrix()
     return(U_ago_1971)
   })
-  
-  data7 <- reactive({ 
+
+  data7 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
     V_ago_1971 <- ago1971$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
-  
-  data8 <- reactive({ 
+
+  data8 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2)
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
     return(Y_ago_1971)
   })
-  
-  
-  
-  #Faceted efficiency graphs  
+
+
+
+  #Faceted efficiency graphs
   eff7 <- reactive({
     agg_eta_pfu_df2 <- melt(agg_eta_pfu_df, id = c("Country", "Method", "Energy.type", "Year", "IEAMW", "Chopped.mat", "Chopped.var", "Product.aggregation", "Industry.aggregation", "GrossNet","EX.p", "EX.f", "EX.u")
     )
-    
+
     agg_eta_pu_all_continents <- agg_eta_pfu_df2 |>
       dplyr::filter(Country == selected_country(),
                     Method == "PCM",
@@ -237,17 +231,17 @@ server <- function(input, output, session) {
       )
     return(agg_eta_pu_all_continents)
   })
-  
+
   eff8 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-    
+
     observe({
       updateSelectInput(session, "options",
                         choices = getOptions(input$category))
     })
-    
+
     getOptions <- function(category) {
       if (category == "Final demand sector") {
         return(unique(colnames(Y_ago_1971)))
@@ -259,21 +253,35 @@ server <- function(input, output, session) {
         return(unique(colnames(R_ago_1971)))
       }
     }
-    
+
   })
-  
+
 eff10 <- reactive({
   ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
   return(ago1971)
 })
-  
+
   #Interactive map view
-  output$map <- renderLeaflet({
-    leaflet() %>% 
-      addTiles() %>%
-      setView(lng = 0, lat = 30, zoom = 2)  # Set initial view
-  })
-  
+country_map <- reactive({
+  # Get the ISO 3166-1 alpha-3 country code for the input acronym
+  iso3_code <- countrycode::countrycode(sourcevar = input$countrya, origin = "iso3c", destination = "iso3c")
+
+  # Filter for the specific country
+  subset(worldMap, ISO3 == iso3_code)
+})
+
+# Render the map plot
+output$mapPlot <- renderPlot({
+  # Plot the world map
+  ggplot() +
+    geom_polygon(data = worldMap, aes(x = long, y = lat, group = group), fill = "lightgrey", color = "black") +
+    geom_polygon(data = country_map(), aes(x = long, y = lat, group = group), fill = "blue", color = "black") +
+    coord_fixed() +
+    labs(title = paste("Map of", input$country)) +
+    theme_minimal()
+})
+
+
   #Efficiency graph representation
   output$Plot <- renderPlot({
     eff7() |>
@@ -300,73 +308,73 @@ eff10 <- reactive({
           override.aes = list(linewidth = 1)  # Adjust the size of the line segments in the legend only
         )
       )
-  }) 
-  
+  })
+
   #Sankey portrayal
   output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
-                                                    U = data2(), 
-                                                    V = data3(), 
+                                                    U = data2(),
+                                                    V = data3(),
                                                     Y = data4())})
   output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data1(),
-                                                     U = data2(), 
-                                                     V = data3(), 
+                                                     U = data2(),
+                                                     V = data3(),
                                                      Y = data4())})
   output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
-                                                     U = data6(), 
-                                                     V = data7(), 
+                                                     U = data6(),
+                                                     V = data7(),
                                                      Y = data8())})
   output$eff8_output <- renderPrint({
     eff8()
   })
-  
+
   do_chop <- function(rowdf, category, selectedOptions){
     #Professor paste logic here
-    
+
     return(rowdf)
   }
-  
- 
-  
+
+
+
   magic_function <- reactive({
     rowdf <- eff10()
     category <- input$category
     selectedOptions <- input$options
-    
+
     result <- do_chop(rowdf, category, selectedOptions)
     return(result)
   })
-  
-  data5 <- reactive({ 
+
+  data5 <- reactive({
     new_row <- magic_function()
     R_ago_1971 <- new_row$R[[1]] |> unlist() |> as.matrix()
     return(R_ago_1971)
   })
-  
-  data6  <- reactive({ 
+
+  data6  <- reactive({
     new_row <- magic_function()
     U_ago_1971 <- new_row$U[[1]] |> unlist() |> as.matrix()
     return(U_ago_1971)
   })
-  
-  data7  <- reactive({ 
+
+  data7  <- reactive({
     new_row <- magic_function()
     V_ago_1971 <- new_row$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
-  
-  data8  <- reactive({ 
+
+  data8  <- reactive({
     new_row <- magic_function()
     Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
     return(Y_ago_1971)
   })
-  
+
   output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
-                                                     U = data6(), 
-                                                     V = data7(), 
+                                                     U = data6(),
+                                                     V = data7(),
                                                      Y = data8())})
-    
-  
-  
+
+
+
 }
 
 # Run the application
