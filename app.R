@@ -276,7 +276,30 @@ server <- function(input, output, session) {
     }
 
   })
-
+  eff9 <- reactive({
+    ago1971 <- psut_df |> dplyr::filter(Country == input$country3, Year == input$year3, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    
+    
+    observe({
+      updateSelectInput(session, "options",
+                        choices = getOptions(input$category))
+    })
+    
+    getOptions <- function(category) {
+      if (category == "Final demand sector") {
+        return(unique(colnames(Y_ago_1971)))
+      } else if (category == "Resource sector") {
+        return(unique(rownames(R_ago_1971)))
+      } else if (category == "Final demand energy carriers") {
+        return(unique(rownames(Y_ago_1971)))
+      } else {
+        return(unique(colnames(R_ago_1971)))
+      }
+    }
+    
+  })
 eff10 <- reactive({
   ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
   return(ago1971)
@@ -344,10 +367,16 @@ output$mapPlot <- renderPlot({
                                                      U = data6(),
                                                      V = data7(),
                                                      Y = data8())})
+  output$sankeyPlot4 <- renderUI({Recca::make_sankey(R = data9(),
+                                                     U = data10(),
+                                                     V = data11(),
+                                                     Y = data12())})
   output$eff8_output <- renderPrint({
     eff8()
   })
-
+  output$eff9_output <- renderPrint({
+    eff9()
+  })
   do_chop <- function(rowdf, category, selectedOptions){
     #Professor paste logic here
 
@@ -388,12 +417,46 @@ output$mapPlot <- renderPlot({
     Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
     return(Y_ago_1971)
   })
-
+  magic_function2 <- reactive({
+    rowdf <- eff11()
+    category <- input$category
+    selectedOptions <- input$options
+    
+    result <- do_chop(rowdf, category, selectedOptions)
+    return(result)
+  })
+  
+  data9 <- reactive({
+    new_row <- magic_function()
+    R_ago_1971 <- new_row$R[[1]] |> unlist() |> as.matrix()
+    return(R_ago_1971)
+  })
+  
+  data10  <- reactive({
+    new_row <- magic_function()
+    U_ago_1971 <- new_row$U[[1]] |> unlist() |> as.matrix()
+    return(U_ago_1971)
+  })
+  
+  data11  <- reactive({
+    new_row <- magic_function()
+    V_ago_1971 <- new_row$V[[1]] |> unlist() |> as.matrix()
+    return(V_ago_1971)
+  })
+  
+  data12  <- reactive({
+    new_row <- magic_function()
+    Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
+    return(Y_ago_1971)
+  })
   output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
                                                      U = data6(),
                                                      V = data7(),
                                                      Y = data8())})
-
+  output$sankeyPlot4 <- renderUI({Recca::make_sankey(R = data9(),
+                                                     U = data10(),
+                                                     V = data11(),
+                                                     Y = data12())})
 
 
 }
