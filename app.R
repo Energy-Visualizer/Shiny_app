@@ -412,6 +412,10 @@ output$mapPlot <- renderPlot({
                                                      U = data10(),
                                                      V = data11(),
                                                      Y = data12())})
+output$eff7_output <- renderPrint({
+    eff7a()
+  })
+  
   output$eff8_output <- renderPrint({
     eff8()
   })
