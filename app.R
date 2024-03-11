@@ -90,50 +90,52 @@ page3 <- tabPanel(
                                      choices = psut_df["Country"],
                                      selected = psut_df["Country"])),
           column(width = 3, selectInput("year2", "Select a Year",
-                                    choices = psut_df["Year"], selected = psut_df["Year"]))
-        ),
+                                    choices = psut_df["Year"], selected = psut_df["Year"])),
         
-        htmlOutput("sankeyPlot3",inline = TRUE),
+        
+          
+          column(width=2,radioButtons("category", "Select Category:",
+                                              choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
+                                              selected = "Final demand sector")),
+                  
+                  
+          column(width=2,radioButtons("last.stage", "Select Last Stage:",
+                                              choices = c("Final", "Useful"),
+                                              selected = "Final")),
+                  
+          column(width=2,radioButtons("energy.type", "Select Energy Type:",
+                                              choices = c("E", "X"),
+                                              selected = "E")),
+                  
+                  
+          column(width=2,radioButtons("ieamw", "Select IEAMW:",
+                                              choices = c("IEA", "MW", "Both"),
+                                              selected = "IEA")),
+                  
+          column(width=2,selectizeInput("options",
+                                                label = "Select Options:",
+                                                choices = c(colnames(Y_ago_1971), rownames(R_ago_1971), colnames(R_ago_1971), rownames(Y_ago_1971)),
+                                                multiple = TRUE))
+          ),
+          htmlOutput("sankeyPlot3",inline = TRUE),
                verbatimTextOutput("eff8_output")),
+       
+        tags$br(),
         
         fixedRow(
           column(width = 3, selectInput("country3", "Select a Country",
                                       choices = psut_df["Country"],
                                       selected = psut_df["Country"])),
           column(width = 3, selectInput("year3", "Select a Year",
-                                      choices = psut_df["Year"], selected = psut_df["Year"]))
-          ),
- 
-        htmlOutput("sankeyPlot4",inline = TRUE),
-               verbatimTextOutput("eff9_output"),
-      tags$br(),
-      fluidRow(
-               column(width=2,radioButtons("category", "Select Category:",
-                            choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
-                            selected = "Final demand sector")),
-      
-      
-               column(width=2,radioButtons("last.stage", "Select Last Stage:",
-                            choices = c("Final", "Useful"),
-                            selected = "Final")),
-               
-               column(width=2,radioButtons("energy.type", "Select Energy Type:",
-                            choices = c("E", "X"),
-                            selected = "E")),
-       
+                                      choices = psut_df["Year"], selected = psut_df["Year"])),
+          
+          htmlOutput("sankeyPlot4",inline = TRUE),
+              verbatimTextOutput("eff9_output")
         
-               column(width=2,radioButtons("ieamw", "Select IEAMW:",
-                            choices = c("IEA", "MW", "Both"),
-                            selected = "IEA")),
-      
-               column(width=2,selectizeInput("options",
-                              label = "Select Options:",
-                              choices = c(colnames(Y_ago_1971), rownames(R_ago_1971), colnames(R_ago_1971), rownames(Y_ago_1971)),
-                              multiple = TRUE))
-      
+      ) 
     )
   )
- )
+
 
 ui <- navbarPage(
   title = "Energy Visualizer",
