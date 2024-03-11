@@ -45,7 +45,10 @@ page1 <- tabPanel(
   )
 )
 
-
+ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
+R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
+Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
 
 page2 <- tabPanel(
   title ="In-depth View",
@@ -54,31 +57,43 @@ page2 <- tabPanel(
   # Show a plot of the generated distribution
   mainPanel(
     fluidPage(
-      selectInput("countryb", "Select a Country",
+      selectInput("countryb", "Select a Country", 
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
+      radioButtons("ieamwa", "Select IEAMW:",
+                   choices = c("IEA", "MW", "Both"),
+                   selected = "IEA"),
       wellPanel(
         fluidRow(
       column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-
+      
       column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
       column(width = 12, plotOutput("Plot"))
       )
       ),
       fluidRow(
-        selectInput("yearb", "Select a Year",
-                    choices = psut_df["Year"], selected = psut_df["Year"]),
-        HTML("<h1>Sankey Diagram</h1>"),
-        htmlOutput("sankeyPlot", inline = FALSE)
-    )
+        column(width = 3, selectInput("yearb", "Select a Year", 
+                    choices = psut_df["Year"], selected = psut_df["Year"])),
+        column(width = 3, radioButtons("categorya", "Select Category:",
+                     choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
+                     selected = "Final demand sector")),
+        column(width = 3, radioButtons("last.stagea", "Select Last Stage:",
+                     choices = c("Final", "Useful"),
+                     selected = "Final")),
+        column(width = 3, radioButtons("energy.typea", "Select Energy Type:",
+                     choices = c("E", "X"),
+                     selected = "E")),
+        selectizeInput("optionsa", 
+                       label = "Select Options:",
+                       choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
+                       multiple = TRUE),
+        HTML("<h1>Sankey Diagram</h1>"), 
+        htmlOutput("sankeyPlot", inline = FALSE),
+        verbatimTextOutput("eff7_output")
+    ) 
     )
   )
 )
-
-ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
-R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-ago1971 <- psut_df |> dplyr::filter(Country == psut_df["Country"], Year == psut_df["Year"])
-Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
 
 page3 <- tabPanel(
   title ="Country Comparison",
@@ -253,6 +268,30 @@ server <- function(input, output, session) {
                     GrossNet == "Gross"
       )
     return(agg_eta_pu_all_continents)
+  })
+
+    eff7a <- reactive({
+    ago1971 <- psut_df |> dplyr::filter(Country == input$countryb, Year == input$yearb, IEAMW == input$ieamwa, Last.stage == input$last.stagea, Energy.type == input$energy.typea)
+    R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
+    Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    
+    observe({
+      updateSelectInput(session, "optionsa",
+                        choices = getOptions(input$categorya))
+    })
+    
+    getOptions <- function(category) {
+      if (category == "Final demand sector") {
+        return(unique(colnames(Y_ago_1971)))
+      } else if (category == "Resource sector") {
+        return(unique(rownames(R_ago_1971)))
+      } else if (category == "Final demand energy carriers") {
+        return(unique(rownames(Y_ago_1971)))
+      } else {
+        return(unique(colnames(R_ago_1971)))
+      }
+    }
+    
   })
 
   eff8 <- reactive({
