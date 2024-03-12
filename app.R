@@ -29,7 +29,9 @@ worldMap <- suppressWarnings(getMap())
 
 page1 <- tabPanel(
   title = "Global Map",
-  titlePanel("Interactive Map"),
+  titlePanel("Background"),
+  p("This project is the result of the gathering of 60 years of energy data for your condensed viewing "),
+  h2("Interactive Map"),
   sidebarLayout(
     sidebarPanel(
       selectInput("countrya", "Select a Country",
@@ -40,7 +42,7 @@ page1 <- tabPanel(
     ),
     mainPanel(
       plotOutput("mapPlot"),
-      htmlOutput("sankeyPlot2", inline = FALSE)
+      htmlOutput("sankeyPlot", inline = FALSE)
     )
   )
 )
@@ -57,7 +59,7 @@ page2 <- tabPanel(
   # Show a plot of the generated distribution
   mainPanel(
     fluidPage(
-      selectInput("countryb", "Select a Country", 
+      selectInput("countryb", "Select a Country",
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
       radioButtons("ieamwa", "Select IEAMW:",
@@ -66,13 +68,13 @@ page2 <- tabPanel(
       wellPanel(
         fluidRow(
       column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-      
+
       column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
       column(width = 12, plotOutput("Plot"))
       )
       ),
       fluidRow(
-        column(width = 3, selectInput("yearb", "Select a Year", 
+        column(width = 3, selectInput("yearb", "Select a Year",
                     choices = psut_df["Year"], selected = psut_df["Year"])),
         column(width = 3, radioButtons("categorya", "Select Category:",
                      choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
@@ -83,14 +85,14 @@ page2 <- tabPanel(
         column(width = 3, radioButtons("energy.typea", "Select Energy Type:",
                      choices = c("E", "X"),
                      selected = "E")),
-        selectizeInput("optionsa", 
+        selectizeInput("optionsa",
                        label = "Select Options:",
                        choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
                        multiple = TRUE),
-        HTML("<h1>Sankey Diagram</h1>"), 
-        htmlOutput("sankeyPlot", inline = FALSE),
+        HTML("<h1>Sankey Diagram</h1>"),
+        htmlOutput("sankeyPlot2", inline = FALSE),
         verbatimTextOutput("eff7_output")
-    ) 
+    )
     )
   )
 )
@@ -106,27 +108,27 @@ page3 <- tabPanel(
                                      selected = psut_df["Country"])),
           column(width = 3, selectInput("year2", "Select a Year",
                                     choices = psut_df["Year"], selected = psut_df["Year"])),
-        
-        
-          
+
+
+
           column(width=2,radioButtons("category", "Select Category:",
                                               choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                                               selected = "Final demand sector")),
-                  
-                  
+
+
           column(width=2,radioButtons("last.stage", "Select Last Stage:",
                                               choices = c("Final", "Useful"),
                                               selected = "Final")),
-                  
+
           column(width=2,radioButtons("energy.type", "Select Energy Type:",
                                               choices = c("E", "X"),
                                               selected = "E")),
-                  
-                  
+
+
           column(width=2,radioButtons("ieamw", "Select IEAMW:",
                                               choices = c("IEA", "MW", "Both"),
                                               selected = "IEA")),
-                  
+
           column(width=2,selectizeInput("options",
                                                 label = "Select Options:",
                                                 choices = c(colnames(Y_ago_1971), rownames(R_ago_1971), colnames(R_ago_1971), rownames(Y_ago_1971)),
@@ -134,20 +136,20 @@ page3 <- tabPanel(
           ),
           htmlOutput("sankeyPlot3",inline = TRUE),
                verbatimTextOutput("eff8_output")),
-       
+
         tags$br(),
-        
+
         fixedRow(
           column(width = 3, selectInput("country3", "Select a Country",
                                       choices = psut_df["Country"],
                                       selected = psut_df["Country"])),
           column(width = 3, selectInput("year3", "Select a Year",
                                       choices = psut_df["Year"], selected = psut_df["Year"])),
-          
+
           htmlOutput("sankeyPlot4",inline = TRUE),
               verbatimTextOutput("eff9_output")
-        
-      ) 
+
+      )
     )
   )
 
@@ -274,12 +276,12 @@ server <- function(input, output, session) {
     ago1971 <- psut_df |> dplyr::filter(Country == input$countryb, Year == input$yearb, IEAMW == input$ieamwa, Last.stage == input$last.stagea, Energy.type == input$energy.typea)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-    
+
     observe({
       updateSelectInput(session, "optionsa",
                         choices = getOptions(input$categorya))
     })
-    
+
     getOptions <- function(category) {
       if (category == "Final demand sector") {
         return(unique(colnames(Y_ago_1971)))
@@ -291,8 +293,13 @@ server <- function(input, output, session) {
         return(unique(colnames(R_ago_1971)))
       }
     }
-    
+
   })
+
+    eff7b <- reactive({
+      ago1971 <- psut_df |> dplyr::filter(Country == input$countryb, Year == input$yearb, IEAMW == input$ieamwa, Last.stage == input$last.stagea, Energy.type == input$energy.typea)
+      return(ago1971)
+    })
 
   eff8 <- reactive({
     ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
@@ -321,13 +328,13 @@ server <- function(input, output, session) {
     ago1971 <- psut_df |> dplyr::filter(Country == input$country3, Year == input$year3, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
     R_ago_1971 <- ago1971$R[[1]] |> unlist() |> as.matrix()
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
-    
-    
+
+
     observe({
       updateSelectInput(session, "options",
                         choices = getOptions(input$category))
     })
-    
+
     getOptions <- function(category) {
       if (category == "Final demand sector") {
         return(unique(colnames(Y_ago_1971)))
@@ -339,7 +346,7 @@ server <- function(input, output, session) {
         return(unique(colnames(R_ago_1971)))
       }
     }
-    
+
   })
 eff10 <- reactive({
   ago1971 <- psut_df |> dplyr::filter(Country == input$country2, Year == input$year2, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
@@ -347,9 +354,21 @@ eff10 <- reactive({
 })
 
   #Interactive map view
+
+concode <- reactive({
+  if (input$countrya == 'CHNM') {
+    return('CHN')
+  } else if (input$countrya == 'OAFR') {
+      return('AFG')
+  } else {
+    return(input$countrya)
+  }
+})
+
 country_map <- reactive({
   # Get the ISO 3166-1 alpha-3 country code for the input acronym
-  iso3_code <- countrycode::countrycode(sourcevar = input$countrya, origin = "iso3c", destination = "iso3c")
+  country_val <- concode()
+  iso3_code <- countrycode::countrycode(sourcevar = country_val, origin = "iso3c", destination = "iso3c")
 
   # Filter for the specific country
   subset(worldMap, ISO3 == iso3_code)
@@ -415,21 +434,123 @@ output$mapPlot <- renderPlot({
 output$eff7_output <- renderPrint({
     eff7a()
   })
-  
+
   output$eff8_output <- renderPrint({
     eff8()
   })
   output$eff9_output <- renderPrint({
     eff9()
   })
+
   do_chop <- function(rowdf, category, selectedOptions){
     #Professor paste logic here
+    if (is.null(selectedOptions)) {
+      # No options selected,
+      # so no reason to do chops.
+      return(rowdf)
+    }
 
-    return(rowdf)
+    if (category == "Final demand sector") {
+      # User wants to isolate columns from the Y matrix
+      out <- rowdf |>
+        Recca::calc_io_mats(direction = "upstream") |>
+        dplyr::mutate(
+          Y_prime = matsbyname::select_cols_byname(Y, RCLabels::make_or_pattern(selectedOptions))
+        ) |>
+        Recca::new_Y()
+    } else if (category == "Resource sector") {
+      # User wants to isolate rows from the R matrix
+      out <- rowdf |>
+        Recca::calc_io_mats(direction = "downstream") |>
+        dplyr::mutate(
+          R_prime = matsbyname::select_rows_byname(R, RCLabels::make_or_pattern(selectedOptions))
+        ) |>
+        Recca::new_R_ps()
+    } else if (category == "Final demand energy carriers") {
+      # User wants to isolate rows from the Y matrix
+      out <- rowdf |>
+        Recca::calc_io_mats(direction = "upstream") |>
+        dplyr::mutate(
+          Y_prime = matsbyname::select_rows_byname(Y, RCLabels::make_or_pattern(selectedOptions))
+        ) |>
+        Recca::new_Y()
+    } else if (category == "Resource energy carriers") {
+      # User wants to isolate columns from the R matrix
+      out <- rowdf |>
+        Recca::calc_io_mats(direction = "downstream") |>
+        dplyr::mutate(
+          R_prime = matsbyname::select_cols_byname(R, RCLabels::make_or_pattern(selectedOptions))
+        ) |>
+        Recca::new_R_ps()
+    } else {
+      # The category is unknown.
+      stop("Unknown category in do_chop()")
+    }
+
+    out |>
+      dplyr::mutate(
+        # Get rid of old (unchopped) versions matrix columns
+        R = NULL, U_feed = NULL, U_EIOU = NULL, r_EIOU = NULL, U = NULL, V = NULL, Y = NULL,
+        # And eliminate io matrices created by calc_io_mats()
+        y = NULL, q = NULL, f = NULL, g = NULL, h = NULL, r = NULL, W = NULL, Z = NULL,
+        K = NULL, C = NULL, D = NULL, A = NULL, O = NULL, L_pxp = NULL, L_ixp = NULL,
+        Z_feed = NULL, K_feed = NULL, A_feed = NULL, L_ixp_feed = NULL, L_pxp_feed = NULL,
+        Z_s = NULL, C_s = NULL, D_s = NULL, D_feed_s = NULL, O_s = NULL, B = NULL, G_pxp = NULL, G_ixp = NULL
+      ) |>
+      dplyr::rename(
+        # Set new names so that the outgoing 1-row data frame
+        # has the same columns as the incoming 1-row data frame
+        R = R_prime,
+        U_feed = U_feed_prime,
+        U_EIOU = U_EIOU_prime,
+        r_EIOU = r_EIOU_prime,
+        U = U_prime,
+        V = V_prime,
+        Y = Y_prime
+      )
   }
 
 
+#For page 2 sankey
+  #Updated 3/11
+  magic_function0 <- reactive({
+    rowdf <- eff7b()
+    category <- input$categorya
+    selectedOptions <- input$optionsa
 
+    result <- do_chop(rowdf, category, selectedOptions)
+    return(result)
+  })
+
+  data13 <- reactive({
+    new_row <- magic_function0()
+    R_ago_1971 <- new_row$R[[1]] |> unlist() |> as.matrix()
+    return(R_ago_1971)
+  })
+
+  data14  <- reactive({
+    new_row <- magic_function0()
+    U_ago_1971 <- new_row$U[[1]] |> unlist() |> as.matrix()
+    return(U_ago_1971)
+  })
+
+  data15  <- reactive({
+    new_row <- magic_function0()
+    V_ago_1971 <- new_row$V[[1]] |> unlist() |> as.matrix()
+    return(V_ago_1971)
+  })
+
+  data16  <- reactive({
+    new_row <- magic_function0()
+    Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
+    return(Y_ago_1971)
+  })
+  output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data13(),
+                                                     U = data14(),
+                                                     V = data15(),
+                                                     Y = data16())})
+
+  #For page 3 Sankey
   magic_function <- reactive({
     rowdf <- eff10()
     category <- input$category
@@ -466,29 +587,29 @@ output$eff7_output <- renderPrint({
     rowdf <- eff11()
     category <- input$category
     selectedOptions <- input$options
-    
+
     result <- do_chop(rowdf, category, selectedOptions)
     return(result)
   })
-  
+
   data9 <- reactive({
     new_row <- magic_function()
     R_ago_1971 <- new_row$R[[1]] |> unlist() |> as.matrix()
     return(R_ago_1971)
   })
-  
+
   data10  <- reactive({
     new_row <- magic_function()
     U_ago_1971 <- new_row$U[[1]] |> unlist() |> as.matrix()
     return(U_ago_1971)
   })
-  
+
   data11  <- reactive({
     new_row <- magic_function()
     V_ago_1971 <- new_row$V[[1]] |> unlist() |> as.matrix()
     return(V_ago_1971)
   })
-  
+
   data12  <- reactive({
     new_row <- magic_function()
     Y_ago_1971 <- new_row$Y[[1]] |> unlist() |> as.matrix()
