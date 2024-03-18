@@ -321,20 +321,22 @@ server <- function(input, output, session) {
     
     getOptions <- function(category) {
       if (category == "Final demand sector") {
-          list3 <- bind_cols(colnames(Y_ago_1971), colnames(Y_ago_19711))
+        list3 <- intersect(colnames(Y_ago_1971), colnames(Y_ago_19711))
         return(list3)
         
       } else if (category == "Resource sector") {
-        list1 < as.data.frame(R_ago_19711)
-        list2 < as.data.frame(R_ago_1971)
-          list3 <- bind_rows(rownames(list1), rownames(list2))
-        return(rownames(list3))
+        list1 <- as.data.frame(R_ago_19711)
+        list2 <- as.data.frame(R_ago_1971)
+        list3 <- intersect(unique(list1), unique(list2))
+        return(unique(rownames(list3)))
       } else if (category == "Final demand energy carriers") {
-          list3 <- bind_rows(rownames(Y_ago_1971), rownames(Y_ago_19711))
+        list1 <- as.data.frame(Y_ago_19711)
+        list2 <- as.data.frame(Y_ago_1971)
+        list3 <- intersect(rownames(Y_ago_1971), rownames(Y_ago_19711))
         
         return(list3)
       } else {
-          list3 <- bind_cols(colnames(R_ago_1971), colnames(R_ago_19711))
+        list3 <- intersect(colnames(R_ago_1971), colnames(R_ago_19711))
         
         return(list3)
       }
