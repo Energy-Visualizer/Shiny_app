@@ -8,7 +8,6 @@
 #
 
 
-
 library(shiny)
 library(networkD3)
 library(Recca)
@@ -322,16 +321,22 @@ server <- function(input, output, session) {
     
     getOptions <- function(category) {
       if (category == "Final demand sector") {
-        list3 <- bind_cols(colnames(Y_ago_1971), colnames(Y_ago_19711))
+          list3 <- bind_cols(colnames(Y_ago_1971), colnames(Y_ago_19711))
         return(list3)
         
-        
       } else if (category == "Resource sector") {
-        return(unique(rownames(R_ago_1971)))
+        list1 < as.data.frame(R_ago_19711)
+        list2 < as.data.frame(R_ago_1971)
+          list3 <- bind_rows(rownames(list1), rownames(list2))
+        return(rownames(list3))
       } else if (category == "Final demand energy carriers") {
-        return(unique(rownames(Y_ago_1971)))
+          list3 <- bind_rows(rownames(Y_ago_1971), rownames(Y_ago_19711))
+        
+        return(list3)
       } else {
-        return(unique(colnames(R_ago_1971)))
+          list3 <- bind_cols(colnames(R_ago_1971), colnames(R_ago_19711))
+        
+        return(list3)
       }
     }
     
@@ -373,33 +378,34 @@ server <- function(input, output, session) {
   })
   
   #Interactive map view
- concode <- reactive({
-  if (input$countrya == 'CHNM') {
-    return('CHN')
-  } else if (input$countrya == 'OAFR') {
+  concode <- reactive({
+    if (input$countrya == 'CHNM') {
+      return('CHN')
+    } else if (input$countrya == 'OAFR') {
       return(c('SHN','BFA','BDI','CPV','CAF','TCD','COM','DJI','GMB','GIN','GNB','LSO','LBR','MWI','MLI','MRT','MYT','STP','REU','SYC','SLE','SOM'))
-  } else if (input$countrya == 'OASI') {
-    return(c('AFG','BTN','CXR','CCK','IOT','MAC','MDV','PSE'))
-  } else if (input$countrya == 'OAMR') {
-    return(C('CHL','GUF','PER'))
-  } else {
-    return(input$countrya)
-  }
-})
-
-country_map <- reactive({
-  # Get the ISO 3166-1 alpha-3 country code for the input acronym
-  country_val <- concode()
-  iso3_code <- countrycode::countrycode(sourcevar = country_val, origin = "iso3c", destination = "iso3c")
-
-  # Filter for the specific country
-  if (input$countrya == "WRLD") {
-    # Return the entire worldMap dataset without filtering
-    return(worldMap)
-  } else {
-  subset(worldMap, ISO3 %in% iso3_code)
-  }
-})
+    } else if (input$countrya == 'OASI') {
+      return(c('AFG','BTN','CXR','CCK','IOT','MAC','MDV','PSE'))
+    } else if (input$countrya == 'OAMR') {
+      return(C('CHL','GUF','PER'))
+    } else {
+      return(input$countrya)
+    }
+  })
+  
+  country_map <- reactive({
+    # Get the ISO 3166-1 alpha-3 country code for the input acronym
+    country_val <- concode()
+    iso3_code <- countrycode::countrycode(sourcevar = country_val, origin = "iso3c", destination = "iso3c")
+    
+    # Filter for the specific country
+    if (input$countrya == "WRLD") {
+      # Return the entire worldMap dataset without filtering
+      return(worldMap)
+    } else {
+      subset(worldMap, ISO3 %in% iso3_code)
+    }
+  })
+  
   
   # Render the map plot
   output$mapPlot <- renderPlot({
