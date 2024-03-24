@@ -43,11 +43,12 @@ page1 <- tabPanel(
                   choices = psut_df["Country"],
                   selected = psut_df["Country"]),
       selectInput("yeara", "Select a Year",
-                  choices = psut_df["Year"], selected = psut_df["Year"])
+                  choices = psut_df["Year"], selected = psut_df["Year"]),
+      plotOutput("mapPlot")
     ),
     mainPanel(
-      plotOutput("mapPlot"),
       htmlOutput("sankeyPlot", inline = FALSE)
+      
     )
   )
 )
@@ -72,9 +73,7 @@ page2 <- tabPanel(
                    selected = "IEA"),
       wellPanel(
         fluidRow(
-          column(width = 6, h4("Product Aggregation"), radioButtons("product_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
-          
-          column(width = 6, h4("Industry Aggregation"), radioButtons("industry_aggregation", "", choices = c("Specified", "Despecified", "Grouped"))),
+          h3("Aggregated Efficiencies"),
           column(width = 12, plotOutput("Plot"))
         )
       ),
@@ -267,11 +266,11 @@ server <- function(input, output, session) {
       dplyr::filter(Country == selected_country(),
                     Method == "PCM",
                     Year >= 1971,
-                    IEAMW == "Both",
+                    IEAMW == input$ieamwa,
                     Chopped.mat == "None",
                     Chopped.var == "None",
-                    Product.aggregation == input$product_aggregation,
-                    Industry.aggregation == input$industry_aggregation,
+                    Product.aggregation == "Specified",
+                    Industry.aggregation == "Specified",
                     GrossNet == "Gross"
       )
     return(agg_eta_pu_all_continents)
@@ -311,8 +310,8 @@ server <- function(input, output, session) {
     Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
     
     ago19711 <- psut_df |> dplyr::filter(Country == input$country3, Year == input$year3, IEAMW == input$ieamw, Last.stage == input$last.stage, Energy.type == input$energy.type)
-    R_ago_19711 <- ago1971$R[[1]] |> unlist() |> as.matrix()
-    Y_ago_19711 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
+    R_ago_1972 <- ago19711$R[[1]] |> unlist() |> as.matrix()
+    Y_ago_1972 <- ago19711$Y[[1]] |> unlist() |> as.matrix()
     
     observe({
       updateSelectInput(session, "options",
@@ -321,23 +320,17 @@ server <- function(input, output, session) {
     
     getOptions <- function(category) {
       if (category == "Final demand sector") {
-        list3 <- intersect(colnames(Y_ago_1971), colnames(Y_ago_19711))
+        list3 <- intersect(colnames(Y_ago_1971), colnames(Y_ago_1972))
         return(list3)
-        
       } else if (category == "Resource sector") {
-        list1 <- as.data.frame(R_ago_19711)
-        list2 <- as.data.frame(R_ago_1971)
-        list3 <- intersect(unique(list1), unique(list2))
-        return(unique(rownames(list3)))
+        list3 <- intersect(rownames(R_ago_1971), rownames(R_ago_1972))
+        return(list3)
       } else if (category == "Final demand energy carriers") {
-        list1 <- as.data.frame(Y_ago_19711)
-        list2 <- as.data.frame(Y_ago_1971)
-        list3 <- intersect(rownames(Y_ago_1971), rownames(Y_ago_19711))
+        list3 <- intersect(rownames(Y_ago_1971), rownames(Y_ago_1972))
         
         return(list3)
       } else {
-        list3 <- intersect(colnames(R_ago_1971), colnames(R_ago_19711))
-        
+        list3 <- intersect(colnames(R_ago_1971), colnames(R_ago_1972))
         return(list3)
       }
     }
