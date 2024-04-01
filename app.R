@@ -55,13 +55,16 @@ page1 <- tabPanel(
       selectInput("countrya", "Select a Country",
                   choices = joined_names$full_name,
                   selected = joined_names$full_name),
-      selectInput("yeara", "Select a Year",
-                  choices = psut_df["Year"], selected = psut_df["Year"]),
-      plotOutput("mapPlot")
+      sliderInput("yeara", "Select a Year",
+                  min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep=""),
+      actionButton("playButton", "Play"),
+      htmlOutput("sankeyPlot", inline = FALSE)
+      
     ),
     mainPanel(
-      htmlOutput("sankeyPlot", inline = FALSE)
-
+      
+      
+      plotOutput("mapPlot", height = "500", width = "900")
     )
   )
 )
@@ -486,10 +489,11 @@ server <- function(input, output, session) {
 
   #Sankey portrayal
   # second page saneky
+  # second page saneky
   output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
                                                     U = data2(),
                                                     V = data3(),
-                                                    Y = data4())})
+                                                    Y = data4(), nodeWidth = 7, width = "435", height = "350")})
   # first page sankey
   output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data1(),
                                                      U = data2(),
@@ -697,8 +701,12 @@ server <- function(input, output, session) {
                                                      U = data10(),
                                                      V = data11(),
                                                      Y = data12())})
-
-
+  observeEvent(input$playButton, {
+    yeara <- integer("yeara") + 1
+    yeara <- character(yeara)
+    updateSliderInput(session, "yeara", value = "yeara")
+      
+  })
 }
 
 # Run the application
