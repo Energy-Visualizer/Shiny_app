@@ -95,8 +95,8 @@ page2 <- tabPanel(
         )
       ),
       fluidRow(
-        column(width = 3, selectInput("yearb", "Select a Year",
-                                      choices = psut_df["Year"], selected = psut_df["Year"])),
+        sliderInput("yearb", "Select a Year",
+                    min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep=""),
         column(width = 3, radioButtons("categorya", "Select Category:",
                                        choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
                                        selected = "Final demand sector")),
@@ -127,8 +127,9 @@ page3 <- tabPanel(
         column(width = 3, selectInput("country2", "Select a Country",
                                       choices = joined_names$full_name,
                                       selected = joined_names$full_name)),
-        column(width = 3, selectInput("year2", "Select a Year",
-                                      choices = psut_df["Year"], selected = psut_df["Year"])),
+        column(width = 7, sliderInput("year2", "Select a Year",
+                    min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep="")),
+
 
 
 
@@ -164,8 +165,8 @@ page3 <- tabPanel(
       column(width = 3, selectInput("country3", "Select a Country",
                                     choices = joined_names$full_name,
                                     selected = joined_names$full_name)),
-      column(width = 3, selectInput("year3", "Select a Year",
-                                    choices = psut_df["Year"], selected = psut_df["Year"])),
+       column(width = 7, sliderInput("year3", "Select a Year",
+                  min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep="")),
 
       htmlOutput("sankeyPlot4",inline = TRUE),
       verbatimTextOutput("eff9_output")
