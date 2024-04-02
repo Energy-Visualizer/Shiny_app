@@ -494,7 +494,7 @@ server <- function(input, output, session) {
   output$sankeyPlot <- renderUI({Recca::make_sankey(R = data1(),
                                                     U = data2(),
                                                     V = data3(),
-                                                    Y = data4(), nodeWidth = 7, width = "435", height = "350")})
+                                                    Y = data4(), nodeWidth = 10, nodePadding = 7, width = "auto", height = "400")})
   # first page sankey
   output$sankeyPlot2 <- renderUI({Recca::make_sankey(R = data1(),
                                                      U = data2(),
