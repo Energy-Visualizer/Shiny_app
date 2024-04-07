@@ -21,6 +21,9 @@ library(ggplot2)
 library(googleway)
 library(dplyr)
 library(readxl)
+library(bslib)
+library(thematic)
+thematic::thematic_shiny(font = "auto")
 
 
 pinboard_folder <- file.path("D:/Energy Visualizer/data")
@@ -239,7 +242,7 @@ page3 <- tabPanel(
 
 ui <- navbarPage(
   title = "Energy Visualizer",
-  theme = shinytheme('sandstone'),
+  theme = bs_theme(bootswatch = "flatly"),
   page1,
   page2,
   page3
@@ -514,7 +517,7 @@ server <- function(input, output, session) {
     # Plot the world map
     ggplot() +
       geom_polygon(data = worldMap, aes(x = long, y = lat, group = group), fill = "lightgrey", color = "black") +
-      geom_polygon(data = country_map(), aes(x = long, y = lat, group = group), fill = "blue", color = "black") +
+      geom_polygon(data = country_map(), aes(x = long, y = lat, group = group), fill = "#2C3E50", color = "black") +
       coord_fixed() +
       labs(title = paste("Map of", input$countrya)) +
       theme_minimal()
