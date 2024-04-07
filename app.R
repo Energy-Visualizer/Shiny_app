@@ -59,7 +59,8 @@ page1 <- tabPanel(
                   choices = joined_names$full_name,
                   selected = joined_names$full_name),
       sliderInput("yeara", "Select a Year",
-                  min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep=""),
+                  min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, 
+                  animate = animationOptions(interval = 2000, loop = TRUE, playButton = NULL, pauseButton = NULL), sep=""),
       actionButton("playButton", "Play"),
       htmlOutput("sankeyPlot", inline = FALSE)
       
