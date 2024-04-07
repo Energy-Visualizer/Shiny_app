@@ -76,46 +76,107 @@ Y_ago_1971 <- ago1971$Y[[1]] |> unlist() |> as.matrix()
 
 page2 <- tabPanel(
   title ="In-depth View",
-  tags$h1("Efficiency Graph"),
-  # Sidebar with a slider input for number of bins
-  # Show a plot of the generated distribution
-  mainPanel(
-    fluidPage(
+  tags$h3("Efficiency Graph"),
+  sidebarLayout(
+    position = "right",
+    sidebarPanel(
+      style = "position: sticky; top: 0px;",
       selectInput("countryb", "Select a Country",
                   choices = joined_names$full_name,
                   selected = joined_names$full_name),
       radioButtons("ieamwa", "Select IEAMW:",
                    choices = c("IEA", "MW", "Both"),
                    selected = "IEA"),
-      wellPanel(
-        fluidRow(
-
-          h3("Aggregated Efficiencies"),
-          column(width = 12, plotOutput("Plot"))
-        )
-      ),
-      fluidRow(
-        sliderInput("yearb", "Select a Year",
+       sliderInput("yearb", "Select a Year",
                     min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep=""),
-        column(width = 3, radioButtons("categorya", "Select Category:",
+        radioButtons("categorya", "Select Category:",
                                        choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
-                                       selected = "Final demand sector")),
-        column(width = 3, radioButtons("last.stagea", "Select Last Stage:",
+                                       selected = "Final demand sector"),
+        radioButtons("last.stagea", "Select Last Stage:",
                                        choices = c("Final", "Useful"),
-                                       selected = "Final")),
-        column(width = 3, radioButtons("energy.typea", "Select Energy Type:",
+                                       selected = "Final"),
+        radioButtons("energy.typea", "Select Energy Type:",
                                        choices = c("E", "X"),
-                                       selected = "E")),
+                                       selected = "E"),
         selectizeInput("optionsa",
                        label = "Select Options:",
                        choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
                        multiple = TRUE),
-        HTML("<h1>Sankey Diagram</h1>"),
+
+    ),
+  mainPanel(
+    fluidPage(
+
+      wellPanel(
+        fluidRow(
+          h4("Aggregated Efficiencies"),
+          column(width = 12, plotOutput("Plot"))
+        )
+      ),
+      tags$br(),
+      fluidRow(
+        HTML("<h3>Sankey Diagram</h3>"),
         htmlOutput("sankeyPlot2", inline = FALSE),
         verbatimTextOutput("eff7_output")
       )
     )
   )
+)
+)
+
+page3 <- tabPanel(
+  title ="Country Comparison",
+  tags$h1("Sankey"),
+
+  sidebarLayout(
+  position = "right",
+    sidebarPanel(
+      style = "position: sticky; top: 0px;",
+      radioButtons("category", "Select Category:",
+                   choices = c("Final demand sector", "Resource sector", "Final demand energy carriers", "Resource energy carriers"),
+                   selected = "Final demand sector"),
+
+      radioButtons("last.stage", "Select Last Stage:",
+                   choices = c("Final", "Useful"),
+                   selected = "Final"),
+      radioButtons("energy.type", "Select Energy Type:",
+                   choices = c("E", "X"),
+                   selected = "E"),
+      radioButtons("ieamw", "Select IEAMW:",
+                   choices = c("IEA", "MW", "Both"),
+                   selected = "IEA"),
+      selectizeInput("options",label = "Select Options:",
+                  choices = c(colnames(Y_ago_1971), rownames(R_ago_1971), colnames(R_ago_1971), rownames(Y_ago_1971)),
+                  multiple = TRUE)
+
+    ),
+  mainPanel(
+    fixedRow(
+      fluidRow(
+        column(width = 3, selectInput("country2", "Select a Country",
+                                      choices = joined_names$full_name,
+                                      selected = joined_names$full_name)),
+        column(width = 7, sliderInput("year2", "Select a Year",
+                    min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep="")),
+      ),
+      htmlOutput("sankeyPlot3",inline = TRUE),
+      verbatimTextOutput("eff8_output")),
+
+    tags$br(),
+
+    fixedRow(
+      column(width = 3, selectInput("country3", "Select a Country",
+                                    choices = joined_names$full_name,
+                                    selected = joined_names$full_name)),
+      column(width = 7, sliderInput("year3", "Select a Year",
+                  min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, sep="")),
+
+      htmlOutput("sankeyPlot4",inline = TRUE),
+      verbatimTextOutput("eff9_output")
+
+   )
+  )
+ )
 )
 
 page3 <- tabPanel(
