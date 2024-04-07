@@ -61,7 +61,6 @@ page1 <- tabPanel(
       sliderInput("yeara", "Select a Year",
                   min = min(psut_df["Year"]), max = max(psut_df["Year"]), value = min(psut_df["Year"]), step = 1, 
                   animate = animationOptions(interval = 2000, loop = TRUE, playButton = NULL, pauseButton = NULL), sep=""),
-      actionButton("playButton", "Play"),
       htmlOutput("sankeyPlot", inline = FALSE)
       
     ),
@@ -767,12 +766,7 @@ server <- function(input, output, session) {
                                                      U = data10(),
                                                      V = data11(),
                                                      Y = data12())})
-  observeEvent(input$playButton, {
-    yeara <- integer("yeara") + 1
-    yeara <- character(yeara)
-    updateSliderInput(session, "yeara", value = "yeara")
-      
-  })
+
 }
 
 # Run the application
