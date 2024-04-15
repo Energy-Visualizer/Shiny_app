@@ -235,6 +235,23 @@ server <- function(input, output, session) {
     return(egg)
   })
 
+
+  min_year <- reactive({
+    # Make slider update to lowest possible year
+    country_data <- psut_df[psut_df["Country"] == fulla(), ]
+    min_year <- min(country_data$Year, na.rm = TRUE)
+    return(min_year)
+  })
+
+  # Update the slider input with the minimum year for the sankeys on page 1 and 2
+  observe({
+    updateSliderInput(session, "yeara", min = min_year(), value = min_year())
+  })
+  observe({
+    updateSliderInput(session, "yearb", min = min_year(), value = min_year())
+  })
+
+
   #matrices for regular sankeys
   #Page 1 sankey
   data1 <- reactive({
@@ -348,6 +365,31 @@ server <- function(input, output, session) {
     egg <- joined_names$iso3_code_full[joined_names$full_name %in% input$country3]
     return(egg)
   })
+
+  #slider for page 3 first sankey
+  min_year2 <- reactive({
+    country_data <- psut_df[psut_df["Country"] == fulli(), ]
+    min_year2 <- min(country_data$Year, na.rm = TRUE)
+    return(min_year2)
+  })
+
+  # Update the slider input with the minimum year for the selected country
+  observe({
+    updateSliderInput(session, "year2", min = min_year2(), value = min_year2())
+  })
+
+  #slider for page 3 second sankey
+  min_year3 <- reactive({
+    country_data <- psut_df[psut_df["Country"] == fulle(), ]
+    min_year3 <- min(country_data$Year, na.rm = TRUE)
+    return(min_year3)
+  })
+
+  # Update the slider input with the minimum year for the selected country
+  observe({
+    updateSliderInput(session, "year3", min = min_year3(), value = min_year3())
+  })
+
 
   # third page sankeys
   eff8 <- reactive({
