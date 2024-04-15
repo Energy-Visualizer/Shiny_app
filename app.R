@@ -105,7 +105,7 @@ page2 <- tabPanel(
                      label = "Select Options:",
                      choices = c(colnames(Y_ago_1971),rownames(R_ago_1971),colnames(R_ago_1971),rownames(Y_ago_1971)),
                      multiple = TRUE),
-
+      style = "padding-bottom: 200px"
     ),
     mainPanel(
       fluidPage(
