@@ -35,6 +35,8 @@ country_names <- read_excel("C:/Users/Keren/Documents/Shiny_app/Data/Country_Con
 iso_codes <- data.frame(iso3_code_full = country_names$ISO3C.code, full_name = country_names$FAO.name)
 iso_codes <- iso_codes[complete.cases(iso_codes), ]
 
+colour_df1 <- read_excel("C:Energy Visualizer/Data/color_scheme_graphs.xlsx")
+
 # Extract unique values from psut_df
 unique_countries <- unique(psut_df[["Country"]])
 
@@ -721,13 +723,15 @@ server <- function(input, output, session) {
   output$sankeyPlot3 <- renderUI({Recca::make_sankey(R = data5(),
                                                      U = data6(),
                                                      V = data7(),
-                                                     Y = data8())})
+                                                     Y = data8(),
+                                                     colour_string = colour_df1)})
   # second sankey third page updated
   output$sankeyPlot4 <- renderUI({Recca::make_sankey(R = data9(),
                                                      U = data10(),
                                                      V = data11(),
-                                                     Y = data12())})
-
+                                                     Y = data12(),
+                                                     colour_string = colour_df1)})
+  
 }
 
 # Run the application
