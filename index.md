@@ -6,8 +6,11 @@
 
 ## Our Team
 - Adam Zentner
+  - Computer scientist from Michigan
 - Oghenesuvwe Ogedegbe
+  - Computer scientist from Nigeria
 - Haim Hong
+  - Computer scientist from South Korea
 
 ## Advisor
 Professor Matthew Heun
