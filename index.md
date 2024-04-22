@@ -13,8 +13,8 @@
   - Computer scientist from South Korea
 
 ## Advisor
-Professor Matthew Heun
-Professor Keith Vander Linden
+- Professor Matthew Heun
+- Professor Keith Vander Linden
 
 ## Project Resources
 The following resources will be needed to complete the project:
