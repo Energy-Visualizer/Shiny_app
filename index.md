@@ -12,7 +12,7 @@
 - Haim Hong
   - Computer scientist from South Korea
 
-## Advisor
+## Advisors
 - Professor Matthew Heun
 - Professor Keith Vander Linden
 
