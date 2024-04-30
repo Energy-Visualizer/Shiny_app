@@ -21,3 +21,4 @@ The following resources will be needed to complete the project:
 - [Department of Computer Science](https://computing.calvin.edu)
 - [Project Proposal](https://calvincollege-my.sharepoint.com/:w:/r/personal/oko2_calvin_edu/_layouts/15/Doc.aspx?sourcedoc=%7B9064C99F-495B-4A7E-9517-F865CAD56DA2%7D&file=Project%20Proposal%20Edit.docx&action=default&mobileredirect=true)
 - [Project presentation](https://calvincollege-my.sharepoint.com/:p:/g/personal/aez9_calvin_edu/ERZf3xa8Ie5DjHm4XAh4IwkBfPGEJhqRG3sHBYIVlLl1rg?e=ZLigia)
+- [Project Report](https://docs.google.com/document/d/11_4585oDnDNS6xSpnERuJ1fr2_inlFkJzMnPqpFh8zk/edit?usp=sharing)
